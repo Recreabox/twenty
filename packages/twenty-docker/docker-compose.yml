@@ -28,14 +28,12 @@ services:
 
   init:
     image: twentycrm/twenty:${TAG:-v0.52.6}
-    command: |
+    command: >
       sh -c "
         echo 'Installing PostgreSQL client...'
         apt-get update && apt-get install -y postgresql-client || true
         echo 'Waiting for database...'
-        until pg_isready -h db -U postgres -d default; do
-          sleep 1
-        done
+        until pg_isready -h db -U postgres -d default; do sleep 1; done
         echo 'Creating schemas...'
         PGPASSWORD=kbdDy74IBDfMOLrvhwsBLq8wDcG0TQHR psql -h db -U postgres -d default -c 'CREATE SCHEMA IF NOT EXISTS core; CREATE SCHEMA IF NOT EXISTS metadata;' || true
         echo 'Running migrations...'
@@ -81,7 +79,7 @@ services:
       IS_MULTIWORKSPACE_ENABLED: false
       IS_SIGN_UP_DISABLED: false
     depends_on:
-      migration:
+      init:
         condition: service_completed_successfully
       db:
         condition: service_healthy
@@ -109,3 +107,19 @@ services:
       APP_SECRET: A2FFVimBYYdHZ3KBSfWDMKzXTWAVTD3dax2NNyBARlfzAVdcCZz3bjoKRSnpeqtO
       ACCESS_TOKEN_SECRET: cE3iI2QN3RAgxauOCT0fZv2RK0Mn1DxC
       LOGIN_TOKEN_SECRET: KR0rV28t50jX34xN5ILy2C5bwFfDZsKG
+      REFRESH_TOKEN_SECRET: 2T9g94jmZ2hxMjwRlbT1zNc170rSTsoK
+      FILE_TOKEN_SECRET: 9jV6vnv7gzcWkXBW3fz587S4yH2MqzGl
+      ENABLE_DB_MIGRATIONS: false
+      DISABLE_DB_MIGRATIONS: true
+      STORAGE_TYPE: local
+      SERVER_URL: https://y0kswk8k4k88cwsg4ggs4404.recreabox.com
+    depends_on:
+      init:
+        condition: service_completed_successfully
+      server:
+        condition: service_started
+    restart: always
+
+volumes:
+  db-data:
+  server-data:
